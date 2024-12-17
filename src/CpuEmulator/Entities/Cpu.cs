@@ -31,8 +31,14 @@ public class Cpu
         {
             var instruction = _instructionMemory.Read(_programCounter++);
             
-            // opCode, dstRegister, srcRegister
-            int[] decodedInstructions = [ (instruction >> 16) & 0xFF, (instruction >> 8) & 0xFF, instruction & 0xFF ];
+            // opCode, dstRegister, srcRegister1, srcRegister2
+            int[] decodedInstructions = 
+                [
+                    (instruction >> 24) & 0xFF,
+                    (instruction >> 16) & 0xFF,
+                    (instruction >> 8) & 0xFF,
+                    instruction & 0xFF
+                ];
             
             switch (decodedInstructions[0])
             {
@@ -44,13 +50,13 @@ public class Cpu
                     _registers[decodedInstructions[1]].Write(
                         _registers[decodedInstructions[2]].Read());
                     break;
-                case 0x02: // ADD reg[dst] = reg[dst] + reg[src]
+                case 0x02: // ADD reg[dst] = reg[src1] + reg[src2]
                     _registers[decodedInstructions[1]].Write(
-                        _registers[decodedInstructions[1]].Read() + _registers[decodedInstructions[2]].Read());
+                        _registers[decodedInstructions[2]].Read() + _registers[decodedInstructions[3]].Read());
                     break;
-                case 0x03: // SUB reg[dst] = reg[dst] - reg[src]
+                case 0x03: // SUB reg[dst] = reg[src1] - reg[src2]
                     _registers[decodedInstructions[1]].Write(
-                        _registers[decodedInstructions[1]].Read() - _registers[decodedInstructions[2]].Read());
+                        _registers[decodedInstructions[2]].Read() - _registers[decodedInstructions[3]].Read());
                     break;
                 case 0x04: // INCREMENT reg[dst]
                     _registers[decodedInstructions[1]].Write(_registers[decodedInstructions[1]].Read() + 1);
@@ -68,6 +74,9 @@ public class Cpu
                 case 0x08: // HALT
                     _programCounter = -1;
                     break;
+                case 0x09: // JUMP TO dst
+                    _programCounter = decodedInstructions[1] - 1;
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(decodedInstructions), 
                         decodedInstructions[0], "Unknown opCode");
@@ -83,7 +92,8 @@ public class Cpu
         
         Console.WriteLine($"<opCode: {instructions[0]}, " +
                           $"dst: {instructions[1]}, " +
-                          $"src: {instructions[2]}>");
+                          $"src1: {instructions[2]}, " +
+                          $"src2: {instructions[3]}>");
         
         Console.WriteLine($"<r0: {_registers[0].Read()}, " +
                           $"r1: {_registers[1].Read()}, " +
