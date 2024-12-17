@@ -27,7 +27,6 @@ public class Cpu
 
     public void Execute()
     {
-        // TODO: Добавить ожидание
         while (_programCounter != -1)
         {
             var instruction = _instructionMemory.Read(_programCounter++);
@@ -57,11 +56,17 @@ public class Cpu
                     _registers[decodedInstructions[1]].Write(_registers[decodedInstructions[1]].Read() + 1);
                     break;
                 case 0x05: // ABORT
-                    _programCounter = -1;
+                    _programCounter = -2;
                     break;
                 case 0x06: // JUMP TO dst if reg[src] < 0
                     if (_registers[decodedInstructions[2]].Read() < 0)
                         _programCounter = decodedInstructions[1] - 1;
+                    break;
+                case 0x07: // COPY reg[dst] = reg[src]
+                    _registers[decodedInstructions[1]].Write(_registers[decodedInstructions[2]].Read());
+                    break;
+                case 0x08: // HALT
+                    _programCounter = -1;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(decodedInstructions), 
