@@ -7,7 +7,7 @@ public static class Program
 {
     public static void Main()
     {
-        var dataMemory = new Memory([5, 1, 4, 2, 5, 5]);
+        var dataMemory = new Memory([5, 1, 2, 2, 5, 5]);
         
         var instructionMemory = new Memory(
             [
