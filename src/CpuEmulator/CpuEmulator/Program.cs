@@ -6,30 +6,26 @@ public static class Program
 {
     public static void Main(string[] args)
     {
-        // Исходные данные: массив для суммирования
-        var dataMemory = new Memory([1, 2, 3, 4, 5]);
-
-        // Программа для CPU (в инструкционной памяти)
-        // Инструкция: (byte3 << 16) | (byte2 << 8) | byte1
+        var dataMemory = new Memory([7, 3, 8, 2, 2, 3, 4, 1]);
+        
         var instructionMemory = new Memory(
             [
-                (0 << 16) | (1 << 8) | 0, // LOAD R1 <- memory[R0]
-                (2 << 16) | (2 << 8) | 1, // SUB R2 = R2 - R1
-                (3 << 16) | (0 << 8) | 0, // INCREMENT R0
-                (4 << 16) | (0 << 8) | 9, // JUMP TO 0 if R9 < 0
-                (6 << 16) | (0 << 8) | 0  // ABORT
+                0x00 << 16 | 0x03 << 8 | 0x00, // LOAD R3, размер (в регистр R3 размер массива)
+                
+                0x00 << 16 | 0x01 << 8 | 0x02, // LOAD R1, M[R2] (в регистр текущего значения значение из памяти по регистру индекса)
+                0x02 << 16 | 0x00 << 8 | 0x01, // ADD R0, R1 (сумма регистра суммы и регистра текущего значения)
+                0x04 << 16 | 0x02 << 8 | 0x00, // INCREMENT R2 (инкремент регистра индекса)
+                
+                0x01 << 16 | 0x04 << 8 | 0x02, // MOV R4, R2 (текущий индекс в регистр разницы размера массива и текущего индекса)
+                0x03 << 16 | 0x04 << 8 | 0x03, // SUB R4, R3 (разница текущего индекса и размера массива в соответствующем регистре)
+                0x06 << 16 | 0x02 << 8 | 0x04, // JUMP TO 2, R4 (переход на команду, если значение в R4 < 0)
+                0x05 << 16 | 0x00 << 8 | 0x00  // ABORT
             ]);
-
-        // Создаем CPU и выполняем программу
-        var cpu = new Cpu(8, dataMemory, instructionMemory);
+        
+        var cpu = new Cpu(dataMemory, instructionMemory);
         cpu.Execute();
 
-        // Результат находится в R2
-        Console.WriteLine($"Сумма элементов массива: {cpu.GetRegisterValue(2)}");
-    }
-    
-    private static int Encode(int command, int arg0 = 0, int arg1 = 0)
-    {
-        return (command << 16) | (arg0 << 8) | arg1;
+        // Результат исполнения находится в регистре R0
+        Console.WriteLine($"Сумма элементов массива: {cpu.GetRegister(0).Read()}");
     }
 }
